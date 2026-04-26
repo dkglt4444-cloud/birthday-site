@@ -1,0 +1,2736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Happy Birthday</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=Caveat:wght@400;600&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════
+   RESET & TOKENS
+═══════════════════════════════════════════ */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --rose: #f43f7e;
+      --violet: #7c3aed;
+      --peach: #fb923c;
+      --gold: #f59e0b;
+      --cream: #fdf8f0;
+      --tape: rgba(255, 245, 210, 0.72);
+      /* washi tape colour */
+      --paper-bg: #faf6ee;
+      /* torn paper colour */
+      --glass: rgba(255, 255, 255, 0.06);
+      --gborder: rgba(255, 255, 255, 0.13);
+      --pol-w: clamp(180px, 21vw, 295px);
+      --pol-side: 12px;
+      --pol-bot: 46px;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
+      background: #060010;
+      color: #fff;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ═══════════════════════════════════════════
+   DEEP MULTI-LAYER BACKGROUND
+═══════════════════════════════════════════ */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 55% at 12% 10%, #380660 0%, transparent 65%),
+        radial-gradient(ellipse 65% 55% at 88% 85%, #6b0e38 0%, transparent 60%),
+        radial-gradient(ellipse 50% 42% at 60% 0%, #1a0848 0%, transparent 58%),
+        radial-gradient(ellipse 40% 40% at 90% 10%, #2a0550 0%, transparent 50%),
+        #050010;
+      animation: bgPulse 16s ease-in-out infinite alternate;
+      opacity: 0;
+      /* animated in on load */
+    }
+
+    @keyframes bgPulse {
+      0% {
+        filter: hue-rotate(0deg) brightness(1);
+      }
+
+      40% {
+        filter: hue-rotate(14deg) brightness(1.08);
+      }
+
+      100% {
+        filter: hue-rotate(-10deg) brightness(0.93);
+      }
+    }
+
+    /* Bokeh orbs — injected by JS */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0;
+      /* faded in by JS */
+      pointer-events: none;
+      z-index: 1;
+      animation: orbDrift var(--d) ease-in-out infinite alternate;
+    }
+
+    @keyframes orbDrift {
+      from {
+        transform: translate(0, 0) scale(1);
+      }
+
+      to {
+        transform: translate(var(--tx), var(--ty)) scale(var(--s));
+      }
+    }
+
+    /* Film grain */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+      opacity: 0.42;
+      mix-blend-mode: overlay;
+    }
+
+    /* Particle canvas */
+    #pc {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════════════
+   3-COLUMN SCENE
+═══════════════════════════════════════════ */
+    .scene {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(8px, 1.8vw, 28px);
+      padding: 1rem 1.2rem 5rem;
+      /* bottom pad leaves room for button */
+      transition: opacity 0.7s ease;
+    }
+
+    /* ═══════════════════════════════════════════
+   SCRAPBOOK POLAROID — full assembly
+═══════════════════════════════════════════ */
+    .pol-wrap {
+      flex: 0 0 auto;
+      width: var(--pol-w);
+      position: relative;
+      z-index: 12;
+      /* cinematic slide-in — overridden by JS on load */
+      opacity: 0;
+    }
+
+    /* ── Torn paper backing layer ── */
+    .torn-paper {
+      position: absolute;
+      /* extends behind the polaroid */
+      inset: -10px -8px -14px -8px;
+      background: var(--paper-bg);
+      z-index: 0;
+      /* irregular torn edges using clip-path */
+      filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+    }
+
+    .pol-wrap.left-pol .torn-paper {
+      clip-path: polygon(3% 2%, 8% 0%, 14% 3%, 20% 1%, 27% 4%, 33% 0%, 40% 3%,
+          47% 1%, 54% 4%, 61% 0%, 68% 3%, 75% 1%, 82% 4%, 89% 0%,
+          95% 2%, 98% 1%,
+          100% 5%, 99% 12%, 100% 20%, 98% 28%, 100% 36%, 99% 44%,
+          100% 52%, 98% 60%, 100% 68%, 99% 76%, 100% 84%, 98% 92%, 100% 100%,
+          94% 98%, 88% 100%, 81% 97%, 74% 100%, 67% 98%, 60% 100%,
+          53% 97%, 46% 100%, 39% 98%, 32% 100%, 25% 97%, 18% 100%, 11% 97%, 4% 100%, 0% 98%,
+          0% 92%, 1% 84%, 0% 76%, 2% 68%, 0% 60%, 1% 52%,
+          0% 44%, 2% 36%, 0% 28%, 1% 20%, 0% 12%, 2% 5%);
+    }
+
+    .pol-wrap.right-pol .torn-paper {
+      clip-path: polygon(2% 1%, 9% 3%, 16% 0%, 22% 3%, 29% 1%, 36% 4%, 43% 0%,
+          50% 3%, 57% 0%, 64% 4%, 71% 1%, 78% 3%, 85% 0%, 92% 3%, 98% 0%,
+          100% 4%, 99% 10%, 100% 18%, 98% 26%, 100% 34%, 99% 42%,
+          100% 50%, 98% 58%, 100% 66%, 99% 74%, 100% 82%, 98% 90%, 100% 100%,
+          93% 97%, 86% 100%, 79% 97%, 72% 100%, 65% 97%, 58% 100%,
+          51% 97%, 44% 100%, 37% 97%, 30% 100%, 23% 97%, 16% 100%, 9% 97%, 2% 100%, 0% 97%,
+          1% 90%, 0% 82%, 2% 74%, 0% 66%, 1% 58%, 0% 50%,
+          2% 42%, 0% 34%, 2% 26%, 0% 18%, 1% 10%, 0% 4%);
+    }
+
+    /* subtle paper texture on torn layer */
+    .torn-paper::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(0, 0, 0, 0.025) 24px, rgba(0, 0, 0, 0.025) 25px),
+        repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(0, 0, 0, 0.015) 24px, rgba(0, 0, 0, 0.015) 25px);
+      opacity: 0.6;
+    }
+
+    /* ── Polaroid card itself ── */
+    .polaroid {
+      width: 100%;
+      background: #fff;
+      padding: var(--pol-side);
+      padding-bottom: var(--pol-bot);
+      border-radius: 2px;
+      position: relative;
+      z-index: 2;
+      cursor: pointer;
+
+      box-shadow:
+        0 3px 10px rgba(0, 0, 0, 0.28),
+        0 12px 35px rgba(0, 0, 0, 0.42),
+        0 24px 60px rgba(0, 0, 0, 0.32),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+
+      /* tilt & float — set per-side */
+      transform: rotate(var(--rot)) translateY(0px);
+      animation: polFloat var(--fd, 4s) ease-in-out infinite alternate;
+      transition: transform 0.45s cubic-bezier(.34, 1.56, .64, 1), box-shadow 0.35s ease;
+    }
+
+    @keyframes polFloat {
+      from {
+        transform: rotate(var(--rot)) translateY(0px);
+      }
+
+      to {
+        transform: rotate(var(--rot)) translateY(-10px);
+      }
+    }
+
+    .pol-wrap.left-pol {
+      --rot: -11deg;
+      --fd: 4.1s;
+    }
+
+    .pol-wrap.right-pol {
+      --rot: 11deg;
+      --fd: 4.7s;
+    }
+
+    .polaroid:hover {
+      animation-play-state: paused;
+      transform: rotate(calc(var(--rot)*0.2)) translateY(-12px) scale(1.04) !important;
+      box-shadow:
+        0 8px 25px rgba(244, 63, 126, 0.32),
+        0 22px 55px rgba(244, 63, 126, 0.18),
+        0 38px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    /* ── Photo image ── */
+    .pol-img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      border-radius: 1px;
+      position: relative;
+      background: #e8d5f5;
+    }
+
+    .pol-art {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(42px, 6vw, 74px);
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.34, 1.56, .64, 1);
+    }
+
+    .pol-art.out {
+      opacity: 0;
+      transform: scale(0.84) translateY(8px);
+    }
+
+    .pol-art.in {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* ── Real photo image ── */
+    .pol-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 2px;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .pol-photo.out {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+
+    .pol-photo.in {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ── Caption ── */
+    .pol-cap {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--pol-bot);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(11px, 1.4vw, 15px);
+      color: #777;
+      letter-spacing: 0.03em;
+      padding: 0 10px;
+      transition: opacity 0.4s ease;
+    }
+
+    /* ── TAPE STRIPS ── */
+    /* Each tape is a pseudo-element on the polaroid */
+    .tape {
+      position: absolute;
+      z-index: 10;
+      background: var(--tape);
+      /* fine crosshatch for washi texture */
+      background-image:
+        repeating-linear-gradient(45deg, rgba(180, 150, 100, 0.08) 0px, rgba(180, 150, 100, 0.08) 1px, transparent 1px, transparent 5px),
+        repeating-linear-gradient(-45deg, rgba(180, 150, 100, 0.08) 0px, rgba(180, 150, 100, 0.08) 1px, transparent 1px, transparent 5px),
+        linear-gradient(rgba(255, 248, 220, 0.75), rgba(255, 240, 190, 0.72));
+      border: 1px solid rgba(200, 175, 130, 0.3);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    /* Top-left tape */
+    .tape-tl {
+      width: clamp(42px, 6vw, 62px);
+      height: clamp(16px, 2vw, 22px);
+      top: -8px;
+      left: 14%;
+      transform: rotate(-6deg);
+      opacity: 0.88;
+    }
+
+    /* Top-right tape */
+    .tape-tr {
+      width: clamp(38px, 5vw, 56px);
+      height: clamp(14px, 1.8vw, 20px);
+      top: -6px;
+      right: 12%;
+      transform: rotate(8deg);
+      opacity: 0.82;
+    }
+
+    /* Optional bottom-corner accent tape (right polaroid) */
+    .tape-bl {
+      width: clamp(34px, 4.5vw, 50px);
+      height: clamp(13px, 1.6vw, 18px);
+      bottom: calc(var(--pol-bot) - 4px);
+      left: 8%;
+      transform: rotate(5deg);
+      opacity: 0.70;
+    }
+
+    /* ── Decorative sticker dot in corner ── */
+    .sticker {
+      position: absolute;
+      z-index: 11;
+      pointer-events: none;
+      font-size: clamp(14px, 1.8vw, 20px);
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .sticker-tr {
+      top: -14px;
+      right: -8px;
+      transform: rotate(15deg);
+    }
+
+    .sticker-bl {
+      bottom: calc(var(--pol-bot)+4px);
+      left: -10px;
+      transform: rotate(-20deg);
+    }
+
+    /* ═══════════════════════════════════════════
+   CENTER CARD
+═══════════════════════════════════════════ */
+    .card {
+      flex: 0 0 auto;
+      width: clamp(200px, 27vw, 360px);
+      min-height: clamp(310px, 46vh, 470px);
+      background: var(--glass);
+      border: 1px solid var(--gborder);
+      border-radius: 28px;
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 40px 90px rgba(0, 0, 0, 0.65),
+        0 0 90px rgba(244, 63, 126, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2.2rem 1.6rem 2rem;
+      position: relative;
+      z-index: 11;
+      opacity: 0;
+      /* animated in */
+    }
+
+    /* Top cluster */
+    .card-top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.1rem;
+      width: 100%;
+    }
+
+    /* Title */
+    .card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(18px, 2.7vw, 28px);
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      background: linear-gradient(130deg, #fff 0%, #fce7f3 40%, #f9a8d4 70%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 20px rgba(244, 63, 126, 0.45));
+    }
+
+    /* Step dots */
+    .sdots {
+      display: flex;
+      gap: 7px;
+    }
+
+    .sdot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      transition: background 0.45s ease, transform 0.45s cubic-bezier(.34, 1.56, .64, 1);
+    }
+
+    .sdot.lit {
+      background: var(--rose);
+      transform: scale(1.55);
+      box-shadow: 0 0 8px var(--rose), 0 0 16px rgba(244, 63, 126, 0.4);
+    }
+
+    /* Bottom cluster */
+    .card-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.7rem;
+      width: 100%;
+    }
+
+    /* ═══════════════════════════════════════════
+   CSS TULIP FLOWER  🌷
+   Two-state design:
+     default  = closed bud (petals tight/upright)
+     .bloomed = petals spread open on first click
+   Sway lives on .tulip-wrap; float on .tulip-float
+   so both transforms run without overwriting.
+═══════════════════════════════════════════ */
+
+    /* ── Outer wrapper — handles sway rotation ── */
+    .tulip-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: clamp(80px, 12vw, 140px);
+      animation: tulipSway 7s ease-in-out infinite;
+      filter:
+        drop-shadow(0 10px 22px rgba(244, 63, 126, 0.24)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.16));
+      transform-origin: bottom center;
+      /* smooth glow upgrade on bloom */
+      transition: filter 1s ease;
+    }
+
+    /* Bloom upgrades the drop-shadow glow */
+    .tulip-wrap.bloomed {
+      filter:
+        drop-shadow(0 16px 36px rgba(244, 63, 126, 0.60)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.22)) drop-shadow(0 0 32px rgba(244, 114, 182, 0.45));
+    }
+
+    /* Sway: organic pendulum */
+    @keyframes tulipSway {
+
+      0%,
+      100% {
+        transform: rotate(0deg);
+      }
+
+      20% {
+        transform: rotate(2.6deg);
+      }
+
+      50% {
+        transform: rotate(-1.4deg);
+      }
+
+      80% {
+        transform: rotate(2.0deg);
+      }
+    }
+
+    /* ── Inner float wrapper — vertical drift ── */
+    .tulip-float {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      animation: tulipFloat 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes tulipFloat {
+      from {
+        transform: translateY(0px);
+      }
+
+      to {
+        transform: translateY(-9px);
+      }
+    }
+
+    /* ══════════════════════════
+   BLOOM  (flower head)
+══════════════════════════ */
+    .tulip-bloom {
+      position: relative;
+      width: 100%;
+      height: clamp(55px, 7.5vw, 100px);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    /* One-shot scale burst plays when .bloomed is added —
+   .tulip-bloom is a separate element from .tulip-float
+   so there is zero transform conflict. */
+    .tulip-wrap.bloomed .tulip-bloom {
+      animation: bloomBurst 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes bloomBurst {
+      0% {
+        transform: scale(0.88);
+      }
+
+      42% {
+        transform: scale(1.20);
+      }
+
+      72% {
+        transform: scale(1.04);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* ── Each petal ── */
+    .petal {
+      position: absolute;
+      bottom: 0;
+      width: clamp(26px, 3.6vw, 48px);
+      height: clamp(50px, 7vw, 92px);
+      border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%;
+      transform-origin: bottom center;
+      /* smooth transition from bud → bloom */
+      transition:
+        transform 0.90s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.70s ease,
+        box-shadow 0.80s ease;
+    }
+
+    /* ── DEFAULT: closed bud state ── */
+    .petal-c {
+      background: linear-gradient(175deg, #ffd6e8 0%, #f9a8d4 35%, #ec4899 75%, #be185d 100%);
+      box-shadow: inset -3px -6px 14px rgba(190, 24, 93, 0.25),
+        inset 2px 4px 10px rgba(255, 255, 255, 0.28);
+      z-index: 3;
+      transform: scaleX(0.68) scaleY(0.90);
+      /* tight bud */
+    }
+
+    .petal-l {
+      background: linear-gradient(170deg, #fce7f3 0%, #f472b6 40%, #db2777 80%, #9d174d 100%);
+      box-shadow: inset 2px -4px 10px rgba(157, 23, 77, 0.22),
+        inset -1px 3px 8px rgba(255, 255, 255, 0.18);
+      z-index: 2;
+      transform: rotate(-16deg) scaleX(0.58) translateX(-10%) scaleY(0.90);
+    }
+
+    .petal-r {
+      background: linear-gradient(170deg, #fce7f3 0%, #f472b6 40%, #db2777 80%, #9d174d 100%);
+      box-shadow: inset -2px -4px 10px rgba(157, 23, 77, 0.22),
+        inset 1px 3px 8px rgba(255, 255, 255, 0.18);
+      z-index: 2;
+      transform: rotate(16deg) scaleX(0.58) translateX(10%) scaleY(0.90);
+    }
+
+    .petal-ll {
+      background: linear-gradient(165deg, #fbcfe8 0%, #ec4899 45%, #be185d 100%);
+      z-index: 1;
+      opacity: 0.55;
+      transform: rotate(-34deg) scaleX(0.46) translateX(-18%) scaleY(0.82);
+    }
+
+    .petal-rr {
+      background: linear-gradient(165deg, #fbcfe8 0%, #ec4899 45%, #be185d 100%);
+      z-index: 1;
+      opacity: 0.55;
+      transform: rotate(34deg) scaleX(0.46) translateX(18%) scaleY(0.82);
+    }
+
+    /* ── BLOOMED: petals spread open ── */
+    .tulip-wrap.bloomed .petal-c {
+      transform: scaleX(0.88);
+      box-shadow: inset -3px -6px 14px rgba(190, 24, 93, 0.22),
+        inset 2px 4px 12px rgba(255, 255, 255, 0.42);
+    }
+
+    .tulip-wrap.bloomed .petal-l {
+      transform: rotate(-30deg) scaleX(0.80) translateX(-20%);
+    }
+
+    .tulip-wrap.bloomed .petal-r {
+      transform: rotate(30deg) scaleX(0.80) translateX(20%);
+    }
+
+    .tulip-wrap.bloomed .petal-ll {
+      transform: rotate(-54deg) scaleX(0.67) translateX(-30%) scaleY(0.92);
+      opacity: 0.84;
+    }
+
+    .tulip-wrap.bloomed .petal-rr {
+      transform: rotate(54deg) scaleX(0.67) translateX(30%) scaleY(0.92);
+      opacity: 0.84;
+    }
+
+    /* Inner cup highlight — 3-D depth */
+    .tulip-bloom::after {
+      content: '';
+      position: absolute;
+      bottom: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40%;
+      height: 40%;
+      background: radial-gradient(ellipse at 50% 20%, rgba(255, 255, 255, 0.55) 0%, transparent 70%);
+      border-radius: 50%;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    /* ══════════════════════════
+   STEM
+══════════════════════════ */
+    .tulip-stem {
+      width: clamp(4px, 0.55vw, 7px);
+      height: clamp(44px, 6vw, 80px);
+      background: linear-gradient(180deg, #4ade80 0%, #16a34a 55%, #15803d 100%);
+      border-radius: 4px;
+      position: relative;
+      z-index: 0;
+      box-shadow: inset -1px 0 4px rgba(0, 0, 0, 0.18),
+        inset 1px 0 3px rgba(255, 255, 255, 0.12);
+    }
+
+    /* ══════════════════════════
+   LEAVES
+══════════════════════════ */
+    .tulip-leaves {
+      position: absolute;
+      bottom: clamp(12px, 2vw, 26px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      height: clamp(28px, 4vw, 50px);
+      pointer-events: none;
+    }
+
+    .leaf {
+      position: absolute;
+      height: clamp(22px, 3.2vw, 40px);
+      width: clamp(32px, 4.5vw, 58px);
+      border-radius: 50% 50% 50% 50% / 35% 35% 65% 65%;
+      transform-origin: right center;
+    }
+
+    .leaf-l {
+      background: linear-gradient(135deg, #86efac 0%, #22c55e 50%, #15803d 100%);
+      box-shadow: inset 1px 1px 6px rgba(255, 255, 255, 0.25), inset -1px -2px 6px rgba(0, 0, 0, 0.15);
+      right: 50%;
+      top: 0;
+      transform: rotate(-40deg) translateX(-10%);
+    }
+
+    .leaf-r {
+      background: linear-gradient(135deg, #86efac 0%, #22c55e 50%, #15803d 100%);
+      box-shadow: inset -1px 1px 6px rgba(255, 255, 255, 0.25), inset 1px -2px 6px rgba(0, 0, 0, 0.15);
+      left: 50%;
+      top: 30%;
+      transform: rotate(40deg) translateX(10%);
+    }
+
+    /* ══════════════════════════
+   GLOW HALO
+══════════════════════════ */
+    .tulip-glow {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160%;
+      height: 100%;
+      background: radial-gradient(ellipse at 50% 60%,
+          rgba(244, 114, 182, 0.20) 0%,
+          rgba(167, 139, 250, 0.08) 55%,
+          transparent 78%);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: glowBreath 4s ease-in-out infinite alternate;
+      transition: background 0.8s ease;
+    }
+
+    @keyframes glowBreath {
+      from {
+        opacity: 0.65;
+        transform: translateX(-50%) scale(1);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.14);
+      }
+    }
+
+    /* Bloom: glow flares up then settles into tighter pulse */
+    .tulip-wrap.bloomed .tulip-glow {
+      background: radial-gradient(ellipse at 50% 55%,
+          rgba(244, 114, 182, 0.55) 0%,
+          rgba(167, 139, 250, 0.25) 45%,
+          transparent 72%);
+      animation: glowBreath 3s ease-in-out infinite alternate, bloomGlowFlare 1.4s ease-out forwards;
+    }
+
+    @keyframes bloomGlowFlare {
+      0% {
+        opacity: 0.5;
+      }
+
+      28% {
+        opacity: 1.6;
+      }
+
+      100% {
+        opacity: 1.0;
+      }
+    }
+
+    /* ══════════════════════════
+   SPARKLE CANVAS
+   Positioned over the bloom area;
+   JS spawns particles on bloom event.
+══════════════════════════ */
+    #tulip-sparks {
+      position: absolute;
+      top: -35%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220%;
+      height: 220%;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    #tulip-sparks.active {
+      opacity: 1;
+    }
+
+    /* Quote */
+    .cquote {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: clamp(14px, 2vw, 18px);
+      line-height: 1.75;
+      color: rgba(255, 255, 255, 0.95);
+      text-align: center;
+      min-height: 4em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.4rem;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .cquote.fade {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .cquote.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Reaction message */
+    .cmsg {
+      font-size: clamp(11px, 1.5vw, 16px);
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.88);
+      text-align: center;
+      min-height: 1.5em;
+      text-shadow: 0 0 18px rgba(244, 63, 126, 0.55);
+    }
+
+    .cmsg.pop {
+      animation: msgBounce 0.5s cubic-bezier(.34, 1.56, .64, 1);
+    }
+
+    @keyframes msgBounce {
+      0% {
+        transform: scale(0.65) translateY(10px);
+        opacity: 0;
+      }
+
+      70% {
+        transform: scale(1.06) translateY(-2px);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+   GIFT BUTTON — Premium animated
+═══════════════════════════════════════════ */
+    #gift-btn {
+      position: fixed;
+      z-index: 50;
+      left: 50%;
+      top: 80%;
+      transform: translateX(-50%);
+
+      /* Layout */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 1.05rem 2.6rem;
+      min-width: 220px;
+
+      /* Typography */
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(15px, 1.9vw, 20px);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+
+      /* Background + border glow ring */
+      background:
+        linear-gradient(135deg, #1a0630 0%, #2d0845 40%, #1a0630 100%);
+      border: 2px solid transparent;
+      border-radius: 100px;
+      cursor: pointer;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+
+      /* Outer glow */
+      box-shadow:
+        0 0 22px rgba(244, 63, 126, 0.50),
+        0 0 55px rgba(124, 58, 237, 0.28),
+        0 8px 30px rgba(0, 0, 0, 0.50),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+      opacity: 0;
+      animation:
+        btnPulse 3s 2.5s ease-in-out infinite,
+        gshift 4s ease infinite;
+
+      transition:
+        left 0.6s cubic-bezier(.34, 1.56, .64, 1),
+        top 0.6s cubic-bezier(.34, 1.56, .64, 1),
+        transform 0.5s cubic-bezier(.34, 1.56, .64, 1),
+        box-shadow 0.3s ease;
+    }
+
+    /* ── Spinning border ring (conic gradient) ── */
+    #gift-btn::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 100px;
+      background: conic-gradient(from var(--border-angle, 0deg),
+          #f43f7e, #a855f7, #fbbf24, #ec4899,
+          #7c3aed, #fb923c, #f43f7e);
+      z-index: -2;
+      animation: borderSpin 3s linear infinite;
+      opacity: 0.75;
+    }
+
+    @property --border-angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    @keyframes borderSpin {
+      to {
+        --border-angle: 360deg;
+      }
+    }
+
+    /* ── Dark fill inside the ring ── */
+    #gift-btn::after {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border-radius: 100px;
+      background: linear-gradient(135deg, #1a0630 0%, #2d0845 50%, #1a0630 100%);
+      z-index: -1;
+    }
+
+    /* ── Shimmer sweep ── */
+    .btn-shimmer {
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(105deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.12) 45%,
+          rgba(255, 255, 255, 0.05) 55%,
+          transparent 70%);
+      animation: shimmerSweep 3s 1.5s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes shimmerSweep {
+      0% {
+        left: -100%;
+      }
+
+      100% {
+        left: 200%;
+      }
+    }
+
+    /* ── Gift emoji bounce ── */
+    .btn-gift {
+      display: inline-block;
+      font-size: 1.3em;
+      animation: giftBounce 2s ease-in-out infinite;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+    }
+
+    @keyframes giftBounce {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      25% {
+        transform: translateY(-4px) rotate(-6deg);
+      }
+
+      50% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      75% {
+        transform: translateY(-3px) rotate(5deg);
+      }
+    }
+
+    /* ── Button text ── */
+    .btn-label {
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes btnPulse {
+
+      0%,
+      100% {
+        box-shadow:
+          0 0 22px rgba(244, 63, 126, .50),
+          0 0 55px rgba(124, 58, 237, .28),
+          0 8px 30px rgba(0, 0, 0, .50),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+
+      50% {
+        box-shadow:
+          0 0 45px rgba(244, 63, 126, .75),
+          0 0 100px rgba(124, 58, 237, .45),
+          0 12px 50px rgba(0, 0, 0, .55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      }
+    }
+
+    @keyframes gshift {
+
+      0%,
+      100% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+
+    #gift-btn:hover {
+      box-shadow:
+        0 0 55px rgba(244, 63, 126, .85),
+        0 0 120px rgba(124, 58, 237, .50),
+        0 14px 55px rgba(0, 0, 0, .55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transform: translateX(-50%) scale(1.06);
+    }
+
+    #gift-btn:hover .btn-gift {
+      animation-duration: 0.6s;
+    }
+
+    #gift-btn:active {
+      transform: translateX(-50%) scale(0.93) !important;
+    }
+
+    #gift-btn.vanish {
+      animation: btnOut 0.6s ease forwards !important;
+    }
+
+    @keyframes btnOut {
+      to {
+        opacity: 0;
+        transform: translateX(-50%) scale(0);
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+   HINT
+═══════════════════════════════════════════ */
+    #hint {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      font-family: 'Caveat', cursive;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.25);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    /* ═══════════════════════════════════════════
+   FLASH BURST
+═══════════════════════════════════════════ */
+    #flash {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      pointer-events: none;
+      opacity: 0;
+      background: #ffffff;
+    }
+
+    #flash.fire {
+      animation: flashFire 1.5s ease-out forwards;
+    }
+
+    @keyframes flashFire {
+      0% {
+        opacity: 0.6;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+   REVEAL OVERLAY (REDESIGNED)
+═══════════════════════════════════════════ */
+    #reveal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      gap: 1.2rem;
+      text-align: center;
+      background: linear-gradient(-45deg, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15), rgba(251, 146, 60, 0.15));
+      background-size: 400% 400%;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    #reveal.on {
+      display: flex;
+      animation: revBgGradient 12s ease-in-out infinite;
+    }
+
+    @keyframes revBgGradient {
+      0% {
+        background-position: 0% 50%
+      }
+
+      50% {
+        background-position: 100% 50%
+      }
+
+      100% {
+        background-position: 0% 50%
+      }
+    }
+
+    #rev-title {
+      position: relative;
+      z-index: 2;
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(32px, 6vw, 64px);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.2);
+      opacity: 0;
+      transform: scale(0.95) translateY(20px);
+      animation: revIn 1.5s 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards, revTtitlePulse 4s 1.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes revIn {
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    @keyframes revTtitlePulse {
+      0% {
+        text-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.2);
+      }
+
+      100% {
+        text-shadow: 0 0 45px rgba(255, 200, 235, 0.6), 0 0 15px rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    #rev-typed {
+      position: relative;
+      z-index: 2;
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(16px, 2.5vw, 22px);
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 0.03em;
+      min-height: 2em;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    #rev-typed.on {
+      opacity: 1;
+    }
+
+    .cur {
+      display: inline-block;
+      width: 1px;
+      height: 1.1em;
+      background: rgba(255, 255, 255, 0.6);
+      vertical-align: middle;
+      margin-left: 4px;
+      animation: curBlink 0.8s step-end infinite;
+    }
+
+    @keyframes curBlink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    /* Glow ring (Softened) */
+    #gring {
+      position: fixed;
+      inset: 0;
+      z-index: 59;
+      pointer-events: none;
+      display: none;
+    }
+
+    #gring.on {
+      display: block;
+      animation: ringPopSoft 4s ease-in-out infinite;
+    }
+
+    @keyframes ringPopSoft {
+
+      0%,
+      100% {
+        box-shadow: inset 0 0 100px rgba(244, 63, 126, 0.05);
+      }
+
+      50% {
+        box-shadow: inset 0 0 150px rgba(167, 139, 250, 0.1);
+      }
+    }
+
+    /* Confetti canvas */
+    #cc {
+      position: fixed;
+      inset: 0;
+      z-index: 62;
+      pointer-events: none;
+      display: none;
+    }
+
+    /* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+    @media(max-width:700px) {
+      :root {
+        --pol-w: clamp(88px, 24vw, 152px);
+        --pol-side: 8px;
+        --pol-bot: 28px;
+      }
+
+      .scene {
+        gap: clamp(5px, 1.4vw, 10px);
+        padding: 0.6rem 0.6rem 4.5rem;
+      }
+
+      .card {
+        width: clamp(148px, 38vw, 245px);
+        min-height: 220px;
+        padding: 1.2rem 0.9rem 1.1rem;
+        border-radius: 18px;
+      }
+
+      .pol-art {
+        font-size: clamp(24px, 7vw, 42px);
+      }
+
+      .sticker {
+        font-size: 12px;
+      }
+
+      /* Slightly shrink tulip on small screens */
+      .tulip-wrap {
+        width: clamp(74px, 20vw, 115px);
+      }
+
+      #gift-btn {
+        top: 74%;
+      }
+    }
+
+    @media(max-width:400px) {
+      :root {
+        --pol-w: 76px;
+        --pol-side: 5px;
+        --pol-bot: 20px;
+      }
+
+      .card {
+        width: 145px;
+        padding: 0.9rem 0.7rem;
+      }
+
+      .pol-cap,
+      .tape-bl {
+        display: none;
+      }
+
+      .card-title {
+        font-size: 13px;
+      }
+
+      .tulip-wrap {
+        width: 68px;
+      }
+
+      #gift-btn {
+        top: 76%;
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+   PHOTO CHAIN — Hanging thread style
+═══════════════════════════════════════════ */
+    .photo-chain-row {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: clamp(220px, 32vh, 330px);
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+    }
+
+    .photo-chain-row.top {
+      top: 0;
+      animation: chainFadeIn 1.8s 1.0s ease forwards;
+    }
+
+    .photo-chain-row.bottom {
+      bottom: 0;
+      animation: chainFadeIn 1.8s 1.5s ease forwards;
+    }
+
+    @keyframes chainFadeIn {
+      to {
+        opacity: 0.92;
+      }
+    }
+
+    /* ── Track container ── */
+    .photo-track {
+      display: flex;
+      gap: clamp(18px, 2.5vw, 36px);
+      align-items: flex-start;
+      padding-top: 18px;
+      height: 100%;
+      width: max-content;
+      will-change: transform;
+      position: relative;
+    }
+
+    .photo-track.scroll-left {
+      animation: trackScrollL 22s linear infinite;
+    }
+
+    .photo-track.scroll-right {
+      animation: trackScrollR 22s linear infinite;
+    }
+
+    @keyframes trackScrollL {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    @keyframes trackScrollR {
+      from {
+        transform: translateX(-50%);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    /* ── Thread line — runs behind the photos ── */
+    .photo-track::before {
+      content: '';
+      position: absolute;
+      top: 26px;
+      left: 0;
+      right: 0;
+      height: 2.5px;
+      background: linear-gradient(90deg,
+          #1a1a1a 0%, #2d2d2d 20%, #1a1a1a 40%,
+          #2d2d2d 60%, #1a1a1a 80%, #2d2d2d 100%);
+      background-size: 300px 100%;
+      border-radius: 2px;
+      z-index: 0;
+      box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.4),
+        0 0 6px rgba(0, 0, 0, 0.15);
+      /* subtle catenary curve */
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 8' preserveAspectRatio='none'%3E%3Cpath d='M0,2 Q100,7 200,3 Q300,0 400,4' stroke='white' stroke-width='6' fill='none'/%3E%3C/svg%3E");
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 8' preserveAspectRatio='none'%3E%3Cpath d='M0,2 Q100,7 200,3 Q300,0 400,4' stroke='white' stroke-width='6' fill='none'/%3E%3C/svg%3E");
+      mask-size: 400px 8px;
+      -webkit-mask-size: 400px 8px;
+      mask-repeat: repeat-x;
+      -webkit-mask-repeat: repeat-x;
+    }
+
+    /* ── Polaroid card (hanging style) ── */
+    .chain-polaroid {
+      flex-shrink: 0;
+      width: clamp(100px, 10vw, 160px);
+      background: #fff;
+      padding: clamp(5px, 0.7vw, 9px);
+      padding-bottom: clamp(22px, 3.5vw, 38px);
+      border-radius: 2px;
+      position: relative;
+      z-index: 1;
+      box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.22),
+        0 12px 36px rgba(0, 0, 0, 0.16),
+        0 0 0 1px rgba(0, 0, 0, 0.05),
+        inset 0 0 0 0.5px rgba(0, 0, 0, 0.03);
+      transform-origin: top center;
+      transform: rotate(var(--rot, 0deg));
+      animation: chainSwing var(--fd, 3s) ease-in-out infinite alternate;
+    }
+
+    /* ── Pin / clip at top ── */
+    .chain-polaroid::before {
+      content: '';
+      position: absolute;
+      top: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%,
+          #555 0%, #2a2a2a 50%, #111 100%);
+      box-shadow:
+        0 1px 4px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      z-index: 5;
+    }
+
+    /* ── Short string from pin to thread ── */
+    .chain-polaroid::after {
+      content: '';
+      position: absolute;
+      top: -19px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1.5px;
+      height: 14px;
+      background: linear-gradient(180deg, #222, #444);
+      border-radius: 1px;
+      z-index: 4;
+    }
+
+    .chain-polaroid img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      border-radius: 1px;
+      display: block;
+    }
+
+    /* ── Hanging sway animation (pendulum + bounce) ── */
+    @keyframes chainSwing {
+      0% {
+        transform: rotate(var(--rot, 0deg)) translateY(0px);
+      }
+
+      30% {
+        transform: rotate(calc(var(--rot, 0deg) + var(--sway, 2deg))) translateY(3px);
+      }
+
+      70% {
+        transform: rotate(calc(var(--rot, 0deg) - var(--sway, 1.5deg))) translateY(5px);
+      }
+
+      100% {
+        transform: rotate(var(--rot, 0deg)) translateY(1px);
+      }
+    }
+
+    /* Responsive adjustments for photo chain */
+    @media (max-width: 700px) {
+      .photo-chain-row {
+        height: clamp(170px, 26vh, 240px);
+      }
+
+      .chain-polaroid {
+        width: clamp(72px, 18vw, 110px);
+        padding: 4px;
+        padding-bottom: 16px;
+      }
+
+      .chain-polaroid::before {
+        width: 9px;
+        height: 9px;
+        top: -5px;
+      }
+
+      .chain-polaroid::after {
+        top: -15px;
+        height: 11px;
+      }
+
+      .photo-track::before {
+        top: 20px;
+        height: 2px;
+      }
+
+      .photo-track {
+        padding-top: 14px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .photo-chain-row {
+        height: 155px;
+      }
+
+      .chain-polaroid {
+        width: 58px;
+        padding: 3px;
+        padding-bottom: 12px;
+      }
+
+      .chain-polaroid::before {
+        width: 7px;
+        height: 7px;
+        top: -4px;
+      }
+
+      .chain-polaroid::after {
+        top: -12px;
+        height: 9px;
+        width: 1px;
+      }
+
+      .photo-track {
+        gap: 14px;
+        padding-top: 10px;
+      }
+
+      .photo-track::before {
+        top: 16px;
+        height: 1.5px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+   MEMORY STAGE — Phase 1 (one-by-one reveal)
+═══════════════════════════════════════════ */
+    .memory-stage {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      transition: opacity 0.9s ease;
+    }
+
+    .memory-polaroid {
+      position: absolute;
+      left: calc(50% + var(--mx, 0px));
+      top: calc(50% + var(--my, 0px));
+      width: clamp(68px, 10vw, 115px);
+      background: #fff;
+      padding: clamp(4px, 0.5vw, 6px);
+      padding-bottom: clamp(14px, 2.2vw, 22px);
+      border-radius: 2px;
+      box-shadow:
+        0 5px 18px rgba(0, 0, 0, 0.28),
+        0 14px 40px rgba(0, 0, 0, 0.18),
+        0 0 0 1px rgba(0, 0, 0, 0.04);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.55) rotate(var(--rot, 0deg));
+      transition:
+        opacity 0.55s ease,
+        transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .memory-polaroid.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1) rotate(var(--rot, 0deg));
+    }
+
+    .memory-polaroid img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      border-radius: 1px;
+      display: block;
+    }
+
+    /* Responsive memory polaroids */
+    @media (max-width: 700px) {
+      .memory-polaroid {
+        width: clamp(52px, 18vw, 80px);
+        padding: 3px;
+        padding-bottom: 10px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .memory-polaroid {
+        width: 48px;
+        padding: 2px;
+        padding-bottom: 8px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════
+   INTRO SCREEN — Cinematic
+═══════════════════════════════════════════ */
+    #intro-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 40%, #2a0550 0%, transparent 70%),
+        radial-gradient(ellipse 50% 50% at 20% 80%, #6b0e38 0%, transparent 60%),
+        radial-gradient(ellipse 45% 45% at 80% 20%, #380660 0%, transparent 55%),
+        #060010;
+      transition: opacity 1s ease, filter 1s ease;
+    }
+
+    /* Vignette */
+    #intro-screen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center,
+          transparent 40%,
+          rgba(0, 0, 0, 0.55) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #intro-screen.exit {
+      opacity: 0;
+      filter: blur(8px);
+      pointer-events: none;
+    }
+
+    /* Glass card */
+    .intro-card {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      padding: 3rem 3.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55),
+        0 0 100px rgba(124, 58, 237, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      opacity: 0;
+      transform: translateY(24px) scale(0.97);
+      animation: introCardIn 1.2s 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    @keyframes introCardIn {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Typing container */
+    .intro-typed-area {
+      min-height: 2.8em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: introFloat 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes introFloat {
+      from {
+        transform: translateY(0);
+      }
+
+      to {
+        transform: translateY(-6px);
+      }
+    }
+
+    .intro-text {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(26px, 5.5vw, 46px);
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.92);
+      text-align: center;
+      letter-spacing: 0.02em;
+      text-shadow:
+        0 0 30px rgba(244, 114, 182, 0.30),
+        0 0 60px rgba(124, 58, 237, 0.15);
+      white-space: pre-wrap;
+    }
+
+    /* Blinking cursor */
+    .intro-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.1em;
+      background: rgba(255, 255, 255, 0.7);
+      margin-left: 3px;
+      vertical-align: middle;
+      animation: introCurBlink 0.7s step-end infinite;
+    }
+
+    @keyframes introCurBlink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    /* Button */
+    #intro-btn {
+      padding: 1rem 2.8rem;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(18px, 3vw, 26px);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      color: #fff;
+      background: linear-gradient(135deg, var(--rose), var(--violet));
+      background-size: 200% 200%;
+      border: none;
+      border-radius: 100px;
+      cursor: pointer;
+      outline: none;
+      box-shadow:
+        0 0 28px rgba(244, 63, 126, 0.50),
+        0 0 60px rgba(124, 58, 237, 0.25),
+        0 8px 30px rgba(0, 0, 0, 0.40);
+      opacity: 0;
+      transform: scale(0.88);
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.3s ease;
+      animation: gshift 4s ease infinite;
+      pointer-events: none;
+    }
+
+    #intro-btn.show {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    #intro-btn:hover {
+      transform: scale(1.08);
+      box-shadow:
+        0 0 40px rgba(244, 63, 126, 0.70),
+        0 0 80px rgba(124, 58, 237, 0.35),
+        0 10px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    #intro-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* Ambient glow */
+    .intro-glow {
+      position: absolute;
+      z-index: 0;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+          rgba(244, 114, 182, 0.14) 0%,
+          rgba(124, 58, 237, 0.07) 50%,
+          transparent 70%);
+      filter: blur(70px);
+      pointer-events: none;
+      animation: introGlowPulse 5s ease-in-out infinite alternate;
+    }
+
+    @keyframes introGlowPulse {
+      from {
+        opacity: 0.5;
+        transform: scale(1);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1.25);
+      }
+    }
+
+    @media (max-width: 500px) {
+      .intro-card {
+        padding: 2.2rem 1.6rem;
+        border-radius: 20px;
+        margin: 0 1rem;
+      }
+
+      .intro-text {
+        font-size: clamp(22px, 7vw, 34px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Intro Screen ── -->
+  <div id="intro-screen">
+    <div class="intro-glow"></div>
+    <div class="intro-card">
+      <div class="intro-typed-area">
+        <span class="intro-text" id="intro-typed"></span>
+        <span class="intro-cursor" id="intro-cursor"></span>
+      </div>
+      <button id="intro-btn">hell....yeah😋</button>
+    </div>
+  </div>
+
+  <!-- ── Background layers ── -->
+  <div class="bg" id="bg"></div>
+  <div class="grain"></div>
+  <canvas id="pc"></canvas>
+
+  <!-- ── FX layers ── -->
+  <div id="flash"></div>
+  <div id="gring"></div>
+  <canvas id="cc"></canvas>
+
+  <!-- ── Reveal overlay ── -->
+  <div id="reveal">
+    <div id="rev-title">Happy Birthday </div>
+    <div id="rev-typed"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+     3-COLUMN SCENE
+══════════════════════════════════════════ -->
+  <div class="scene" id="scene">
+
+    <!-- ════ LEFT POLAROID ════ -->
+    <div class="pol-wrap left-pol" id="pol-l-wrap">
+      <!-- Torn paper backing -->
+      <div class="torn-paper"></div>
+
+      <!-- Washi tape strips -->
+      <div class="tape tape-tl"></div>
+      <div class="tape tape-tr"></div>
+
+      <!-- Decorative stickers -->
+      <div class="sticker sticker-tr">🌸</div>
+
+      <!-- Polaroid card -->
+      <div class="polaroid pol-left">
+        <div class="pol-img">
+          <img class="pol-photo in" id="img-l" src="images/pic1.jpg" alt="Memory" onerror="this.style.opacity='0'">
+        </div>
+        <div class="pol-cap" id="cap-l"></div>
+      </div>
+    </div>
+
+    <!-- ════ CENTER CARD ════ -->
+    <div class="card" id="card">
+      <div class="card-top">
+        <div class="card-title">For Moti Piggy</div>
+        <div class="sdots" id="sdots">
+          <div class="sdot"></div>
+          <div class="sdot"></div>
+          <div class="sdot"></div>
+          <div class="sdot"></div>
+          <div class="sdot"></div>
+        </div>
+      </div>
+
+      <!-- ── CSS Tulip Flower ── -->
+      <div class="tulip-wrap" id="tulip" aria-hidden="true">
+
+        <!-- Ambient glow halo behind the bloom -->
+        <div class="tulip-glow"></div>
+
+        <!-- Sparkle particles canvas — JS-driven, fires on bloom -->
+        <canvas id="tulip-sparks"></canvas>
+
+        <!-- Inner float wrapper (float + sway are on separate elements
+           so both transforms apply without overriding each other) -->
+        <div class="tulip-float">
+
+          <!-- Bloom: 5 layered petals -->
+          <div class="tulip-bloom">
+            <div class="petal petal-ll"></div>
+            <div class="petal petal-l"></div>
+            <div class="petal petal-c"></div>
+            <div class="petal petal-r"></div>
+            <div class="petal petal-rr"></div>
+          </div>
+
+          <!-- Stem -->
+          <div class="tulip-stem">
+            <!-- Leaves positioned along the stem -->
+            <div class="tulip-leaves">
+              <div class="leaf leaf-l"></div>
+              <div class="leaf leaf-r"></div>
+            </div>
+          </div>
+
+        </div><!-- /tulip-float -->
+
+      </div>
+      <!-- /tulip -->
+
+      <div class="card-bottom">
+        <div class="cquote fade" id="cquote"></div>
+        <div class="cmsg" id="cmsg"></div>
+      </div>
+    </div>
+
+    <!-- ════ RIGHT POLAROID ════ -->
+    <div class="pol-wrap right-pol" id="pol-r-wrap">
+      <!-- Torn paper backing -->
+      <div class="torn-paper"></div>
+
+      <!-- Washi tape strips -->
+      <div class="tape tape-tl"></div>
+      <div class="tape tape-tr"></div>
+      <div class="tape tape-bl"></div>
+
+      <!-- Decorative stickers -->
+      <div class="sticker sticker-bl">✨</div>
+
+      <!-- Polaroid card -->
+      <div class="polaroid pol-right">
+        <div class="pol-img">
+          <img class="pol-photo in" id="img-r" src="images/pic6.jpg" alt="Memory" onerror="this.style.opacity='0'">
+        </div>
+        <div class="pol-cap" id="cap-r"></div>
+      </div>
+    </div>
+
+  </div><!-- /scene -->
+
+  <p id="hint">✦ open the gift to begin ✦</p>
+  <button id="gift-btn">
+    <span class="btn-shimmer"></span>
+    <span class="btn-gift">🎁</span>
+    <span class="btn-label">Unwrap Your Surprise</span>
+  </button>
+
+  <!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+
+
+  <script>
+    /* ═══════════════════════════════════════════
+       CONTENT DATA
+       Swap bg/emoji for real <img> tags when ready
+    ═══════════════════════════════════════════ */
+    const leftImages = [
+      "images/pic1.jpg",
+      "images/pic2.jpg",
+      "images/pic3.jpg",
+      "images/pic4.jpg",
+      "images/pic5.jpg"
+    ];
+    const rightImages = [
+      "images/pic6.jpg",
+      "images/pic7.jpg",
+      "images/pic8.jpg",
+      "images/pic9.jpg",
+      "images/pic10.jpg"
+    ];
+    const QUOTES = [
+      "Tu jitna sochti hai na… usse zyada strong hai",
+      "Tu akeli nahi hai… kabhi bhi nahi",
+      "Well i am about to out of line so...",
+      "Happy Birthday… you matter more than you think",
+      "Bas kr itni hi lines thi😭......"
+    ];
+    const P1_MSGS = ['Keep clicking 😜', 'Oh? Again? 😏', 'Getting closer… 👀', 'So persistent! 🔥', 'Almost there… 🤫'];
+    const ESC_MSGS = ["You'll never catch me! 🏃‍♀️", 'Nope! 😈', 'Too slow! ⚡', 'So close!! 😅', 'One more! 🙏', 'Catch me! 🌀'];
+
+    /* ═══════════════════════════════════════════
+       CINEMATIC LOAD SEQUENCE
+       Pure CSS-variable driven — no heavy lib needed
+    ═══════════════════════════════════════════ */
+
+    /* Tiny easing helper — maps t∈[0,1] through cubic-bezier */
+    function easeOutElastic(t) {
+      const c4 = (2 * Math.PI) / 3;
+      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+    }
+    function easeOutExpo(t) { return t === 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+
+    /* animate(el, from, to, dur, easeFn, onUpdate, onDone) */
+    function animate(duration, easeFn, onTick, onDone) {
+      const start = performance.now();
+      function frame(now) {
+        const p = Math.min((now - start) / duration, 1);
+        onTick(easeFn(p), p);
+        if (p < 1) requestAnimationFrame(frame);
+        else if (onDone) onDone();
+      }
+      requestAnimationFrame(frame);
+    }
+
+    /* ── Orchestrate the page load cinematic ── */
+    function runLoadCinematic() {
+      const bg = document.getElementById('bg');
+      const card = document.getElementById('card');
+      const polL = document.getElementById('pol-l-wrap');
+      const polR = document.getElementById('pol-r-wrap');
+      const btn = document.getElementById('gift-btn');
+      const hint = document.getElementById('hint');
+
+      /* 1. Fade in background (0–800ms) */
+      animate(900, easeOutExpo, (p) => { bg.style.opacity = p; }, null);
+
+      /* 2. Fade + drift in orbs (staggered) */
+      document.querySelectorAll('.orb').forEach((orb, i) => {
+        setTimeout(() => {
+          animate(1200, easeOutExpo, (p) => { orb.style.opacity = p * 0.42; }, null);
+        }, 200 + i * 80);
+      });
+
+      /* 3. Left polaroid slides in from left (400–1100ms) */
+      setTimeout(() => {
+        polL.style.opacity = '1';
+        animate(900, easeOutElastic, (p) => {
+          const x = (1 - p) * -120;
+          const r = -11 + (1 - p) * 18; /* starts at -11+18=-29deg then settles to -11 */
+          polL.style.transform = `translateX(${x}px) rotate(${r}deg)`;
+        }, () => { polL.style.transform = ''; }); /* hand off to CSS animation */
+      }, 350);
+
+      /* 4. Right polaroid slides in from right (500–1200ms) */
+      setTimeout(() => {
+        polR.style.opacity = '1';
+        animate(900, easeOutElastic, (p) => {
+          const x = (1 - p) * 120;
+          const r = 11 - (1 - p) * 18;
+          polR.style.transform = `translateX(${x}px) rotate(${r}deg)`;
+        }, () => { polR.style.transform = ''; });
+      }, 470);
+
+      /* 5. Center card scales in (600–1300ms) */
+      setTimeout(() => {
+        card.style.opacity = '1';
+        animate(800, easeOutElastic, (p) => {
+          const s = 0.75 + p * 0.25;
+          const y = (1 - p) * 30;
+          card.style.transform = `scale(${s}) translateY(${y}px)`;
+        }, () => { card.style.transform = ''; });
+      }, 550);
+
+      /* 6. Button fades in (1000ms) */
+      setTimeout(() => {
+        animate(600, easeOutExpo, (p) => { btn.style.opacity = p; }, null);
+      }, 1000);
+
+      /* 7. Hint fades in (1400ms) */
+      setTimeout(() => {
+        animate(500, easeOutExpo, (p) => { hint.style.opacity = p * 0.25; }, null);
+      }, 1400);
+    }
+
+    /* ═══════════════════════════════════════════
+       BACKGROUND ORBS
+    ═══════════════════════════════════════════ */
+    [
+      { c: '#e879a0', w: 560, l: '2%', t: '2%', tx: '55px', ty: '65px', s: 1.2, d: '9s' },
+      { c: '#7c3aed', w: 620, l: '55%', t: '28%', tx: '-65px', ty: '50px', s: 0.88, d: '12s' },
+      { c: '#f59e0b', w: 360, l: '72%', t: '-2%', tx: '-38px', ty: '58px', s: 1.25, d: '8s' },
+      { c: '#ec4899', w: 450, l: '8%', t: '58%', tx: '62px', ty: '-55px', s: 0.85, d: '14s' },
+      { c: '#a855f7', w: 400, l: '40%', t: '-10%', tx: '-28px', ty: '78px', s: 1.1, d: '10s' },
+      { c: '#fb923c', w: 280, l: '78%', t: '70%', tx: '-20px', ty: '-40px', s: 1.3, d: '7s' },
+    ].forEach(o => {
+      const el = document.createElement('div'); el.className = 'orb';
+      el.style.cssText = `width:${o.w}px;height:${o.w}px;background:${o.c};left:${o.l};top:${o.t};--tx:${o.tx};--ty:${o.ty};--s:${o.s};--d:${o.d};`;
+      document.body.appendChild(el);
+    });
+
+    /* ═══════════════════════════════════════════
+       AMBIENT PARTICLES
+    ═══════════════════════════════════════════ */
+    const pCvs = document.getElementById('pc'), pctx = pCvs.getContext('2d');
+    const PCOLS = ['#f43f7e', '#a78bfa', '#fbbf24', '#fb7185', '#c084fc', '#fde68a'];
+    let pts = [], ambientActive = true;
+    function rszP() { pCvs.width = innerWidth; pCvs.height = innerHeight; }
+    rszP(); addEventListener('resize', rszP);
+    class Spark {
+      constructor() { this.init(); }
+      init() {
+        this.x = Math.random() * pCvs.width; this.y = Math.random() * pCvs.height;
+        this.vy = -(Math.random() * .55 + .12); this.vx = (Math.random() - .5) * .28;
+        this.r = Math.random() * 2.2 + .4; this.a = Math.random() * .5 + .08;
+        this.c = PCOLS[Math.floor(Math.random() * PCOLS.length)];
+        this.glow = Math.random() > .55; this.wob = Math.random() * Math.PI * 2; this.ws = Math.random() * .014 + .004;
+      }
+      tick() { this.wob += this.ws; this.x += this.vx + Math.sin(this.wob) * .35; this.y += this.vy; if (this.y < -8) this.init(); }
+      draw() {
+        pctx.save();
+        if (this.glow) { pctx.shadowColor = this.c; pctx.shadowBlur = 9; }
+        pctx.globalAlpha = this.a; pctx.fillStyle = this.c;
+        pctx.beginPath(); pctx.arc(this.x, this.y, this.r, 0, Math.PI * 2); pctx.fill();
+        pctx.restore();
+      }
+    }
+    for (let i = 0; i < 95; i++) pts.push(new Spark());
+    let ambientAlpha = 1;
+    (function ambientLoop() {
+      if (!ambientActive) {
+        /* Fade out gracefully over ~1s then stop */
+        ambientAlpha -= 0.02;
+        if (ambientAlpha <= 0) {
+          pctx.clearRect(0, 0, pCvs.width, pCvs.height);
+          pCvs.style.display = 'none';
+          return;
+        }
+      }
+      pctx.clearRect(0, 0, pCvs.width, pCvs.height);
+      pctx.globalAlpha = ambientAlpha;
+      pts.forEach(p => { p.tick(); p.draw(); });
+      pctx.globalAlpha = 1;
+      requestAnimationFrame(ambientLoop);
+    })();
+
+    function stopAmbientParticles() { ambientActive = false; }
+
+    /* ═══════════════════════════════════════════
+       WEB AUDIO — Happy Birthday melody
+    ═══════════════════════════════════════════ */
+    let aCtx = null, audioOn = false, melodyTimer = null, melodyStopped = false;
+    function startAudio() { if (audioOn) return; audioOn = true; aCtx = new (window.AudioContext || window.webkitAudioContext)(); melody(); }
+    function nt(f, t, d, v = 0.11) {
+      if (!aCtx) return;
+      const o = aCtx.createOscillator(), g = aCtx.createGain(), fil = aCtx.createBiquadFilter();
+      o.connect(fil); fil.connect(g); g.connect(aCtx.destination);
+      fil.type = 'lowpass'; fil.frequency.value = 2400; o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .04);
+      g.gain.linearRampToValueAtTime(v * .55, t + d * .6); g.gain.linearRampToValueAtTime(0, t + d);
+      o.start(t); o.stop(t + d);
+    }
+    function melody() {
+      if (!aCtx || melodyStopped) return;
+      const H = [[261.6, .3], [261.6, .15], [293.7, .45], [261.6, .45], [349.2, .45], [329.6, .9],
+      [261.6, .3], [261.6, .15], [293.7, .45], [261.6, .45], [392, .45], [349.2, .9],
+      [261.6, .3], [261.6, .15], [523.3, .45], [440, .45], [349.2, .45], [329.6, .45], [293.7, .9],
+      [466.2, .3], [466.2, .15], [440, .45], [349.2, .45], [392, .45], [349.2, 1.2]];
+      let t = aCtx.currentTime + .1, total = 0;
+      H.forEach(([f, d]) => { nt(f, t, d * .85); nt(f * .5, t, d * .85, .035); t += d; total += d; });
+      melodyTimer = setTimeout(melody, total * 1000 + 400);
+    }
+    function stopMelody() { melodyStopped = true; if (melodyTimer) clearTimeout(melodyTimer); }
+    function pop() { if (!aCtx) return; const t = aCtx.currentTime; nt(880, t, .07, .07); nt(1108, t + .04, .05, .04); }
+
+    /* ═══════════════════════════════════════════
+       AUTO CAPTION FROM FILE PATH
+    ═══════════════════════════════════════════ */
+    function getCaption(path) {
+      return '';
+    }
+
+    /* ═══════════════════════════════════════════
+       POLAROID IMAGE CROSSFADE
+       Fades out, swaps src + caption, fades in
+    ═══════════════════════════════════════════ */
+    function swapImage(imgEl, capEl, path) {
+      imgEl.classList.remove('in');
+      imgEl.classList.add('out');
+      setTimeout(() => {
+        imgEl.src = path;
+        if (capEl) {
+          capEl.textContent = getCaption(path);
+        }
+        imgEl.classList.remove('out');
+        imgEl.classList.add('in');
+      }, 300);
+    }
+
+    /* ═══════════════════════════════════════════
+       STEP DOTS + QUOTE
+    ═══════════════════════════════════════════ */
+    const sdots = document.querySelectorAll('.sdot');
+    const cquote = document.getElementById('cquote');
+    function setStep(i) {
+      sdots.forEach((d, j) => d.classList.toggle('lit', j <= i));
+      cquote.classList.remove('show'); cquote.classList.add('fade');
+      setTimeout(() => { cquote.textContent = QUOTES[i]; cquote.classList.remove('fade'); cquote.classList.add('show'); }, 290);
+    }
+
+    /* ═══════════════════════════════════════════
+       REACTION MESSAGE
+    ═══════════════════════════════════════════ */
+    const cmsg = document.getElementById('cmsg');
+    function setMsg(t) { cmsg.classList.remove('pop'); void cmsg.offsetWidth; cmsg.textContent = t; cmsg.classList.add('pop'); }
+
+    /* ═══════════════════════════════════════════
+       BUTTON ESCAPE
+    ═══════════════════════════════════════════ */
+    const btn = document.getElementById('gift-btn');
+    const hint = document.getElementById('hint');
+    let clicks = 0, escaping = false, captured = false, moving = false;
+
+    function escape(force = false) {
+      if ((moving || captured) && !force) return;
+      moving = true;
+      const bw = btn.offsetWidth, bh = btn.offsetHeight, pad = 32;
+      const nx = pad + bw / 2 + Math.random() * (innerWidth - bw - pad * 2);
+      const ny = pad + bh / 2 + Math.random() * (innerHeight - bh - pad * 2);
+      const rot = (Math.random() - .5) * 20;
+      btn.style.left = nx + 'px';
+      btn.style.top = ny + 'px';
+      btn.style.transform = `translateX(-50%) rotate(${rot}deg) scale(1)`;
+      setTimeout(() => { moving = false; }, 650);
+    }
+
+    btn.addEventListener('mouseenter', () => { if (escaping && !captured) escape(); });
+    btn.addEventListener('touchmove', e => { if (escaping && !captured) { e.preventDefault(); escape(); } }, { passive: false });
+    setInterval(() => { if (escaping && !captured && !moving) escape(); }, 2700);
+
+    /* ═══════════════════════════════════════════
+       CLICK STATE MACHINE
+    ═══════════════════════════════════════════ */
+    btn.addEventListener('click', () => {
+      if (captured) return;
+      startAudio(); pop(); clicks++;
+
+      if (clicks <= 5) {
+        const i = clicks - 1;
+        /* Bloom the tulip on the very first click */
+        if (clicks === 1) bloomTulip();
+        swapImage(document.getElementById('img-l'), document.getElementById('cap-l'), leftImages[i]);
+        swapImage(document.getElementById('img-r'), document.getElementById('cap-r'), rightImages[i]);
+        setStep(i);
+        setMsg(P1_MSGS[i]);
+        hint.style.opacity = '0';
+        if (clicks === 5) setTimeout(() => { escaping = true; setMsg('Catch me now if you can 😈'); }, 700);
+      } else {
+        const att = clicks - 5;
+        const thresh = 8 + Math.floor(Math.random() * 3);
+        setMsg(ESC_MSGS[Math.min(att - 1, ESC_MSGS.length - 1)]);
+        if (att >= thresh) { captured = true; doReveal(); }
+        else escape(true);
+      }
+    });
+
+    /* ═══════════════════════════════════════════
+       CONFETTI — Premium single-burst system
+       Small soft circles, per-particle fade,
+       self-terminating, no loop.
+    ═══════════════════════════════════════════ */
+    const confCvs = document.getElementById('cc'), cctx = confCvs.getContext('2d');
+    let cpcs = [], cActive = false;
+
+    /* Soft pastels that match the pink/purple/peach theme */
+    const CC = [
+      '#f9a8d4', '#fbcfe8', '#e9d5ff', '#c4b5fd',
+      '#fde68a', '#fecaca', '#fce7f3', '#ddd6fe',
+      '#ffffff', '#fecdd3'
+    ];
+
+    function rszC() { confCvs.width = innerWidth; confCvs.height = innerHeight; }
+
+    class Particle {
+      constructor() {
+        /* Originate from top-center area with natural spread */
+        this.x = innerWidth / 2 + (Math.random() - 0.5) * innerWidth * 0.4;
+        this.y = innerHeight * 0.15 + (Math.random() - 0.5) * innerHeight * 0.1;
+
+        /* Small soft circles */
+        this.r = 1.5 + Math.random() * 2.5;
+
+        /* Gentle outward + downward motion */
+        this.vx = (Math.random() - 0.5) * 3;
+        this.vy = -1.5 + Math.random() * 2;
+        this.grav = 0.06 + Math.random() * 0.04;
+
+        /* Slight wobble for natural feel */
+        this.wob = Math.random() * Math.PI * 2;
+        this.wobSpeed = 0.02 + Math.random() * 0.02;
+        this.wobAmp = 0.3 + Math.random() * 0.4;
+
+        /* Per-particle life & opacity fade */
+        this.life = 1.0;
+        this.decay = 0.006 + Math.random() * 0.008; /* ~80–160 frames ≈ 1.3–2.7s */
+
+        this.c = CC[Math.floor(Math.random() * CC.length)];
+      }
+
+      tick() {
+        this.life -= this.decay;
+        if (this.life <= 0) return false;
+
+        this.wob += this.wobSpeed;
+        this.x += this.vx + Math.sin(this.wob) * this.wobAmp;
+        this.vy += this.grav;
+        this.y += this.vy;
+        this.vx *= 0.995; /* gentle air drag */
+
+        return this.y < confCvs.height + 10;
+      }
+
+      draw() {
+        const alpha = Math.max(0, this.life);
+        cctx.save();
+        cctx.globalAlpha = alpha * 0.75;
+        cctx.fillStyle = this.c;
+        cctx.shadowColor = this.c;
+        cctx.shadowBlur = 4;
+        cctx.beginPath();
+        cctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        cctx.fill();
+        cctx.restore();
+      }
+    }
+
+    function launchConf() {
+      rszC();
+      confCvs.style.display = 'block';
+      confCvs.style.opacity = '1';
+      cActive = true;
+
+      /* Single burst — 55 soft particles, all at once */
+      for (let i = 0; i < 55; i++) cpcs.push(new Particle());
+
+      /* No new particles are ever added — this is the only burst */
+
+      (function loop() {
+        cctx.clearRect(0, 0, confCvs.width, confCvs.height);
+        cpcs = cpcs.filter(p => p.tick());
+        cpcs.forEach(p => p.draw());
+
+        if (cpcs.length === 0) {
+          /* All particles naturally faded — clean up */
+          cActive = false;
+          confCvs.style.display = 'none';
+          return;
+        }
+        requestAnimationFrame(loop);
+      })();
+    }
+
+
+
+    /* ═══════════════════════════════════════════
+       TYPING EFFECT (with natural pause support)
+    ═══════════════════════════════════════════ */
+    function type(el, txt, spd = 60) {
+      return new Promise(res => {
+        el.classList.add('on'); let i = 0;
+        const cur = document.createElement('span'); cur.className = 'cur'; el.appendChild(cur);
+        function tick() {
+          if (i < txt.length) {
+            const ch = txt[i];
+            cur.insertAdjacentText('beforebegin', ch);
+            i++;
+            /* Natural pause after punctuation / ellipsis */
+            let delay = spd + Math.random() * 32;
+            if (ch === '…' || ch === '.' || ch === ',') delay += 320;
+            setTimeout(tick, delay);
+          } else {
+            setTimeout(() => { cur.remove(); res(); }, 1200);
+          }
+        }
+        tick();
+      });
+    }
+
+    /* ═══════════════════════════════════════════
+       MEMORY SEQUENCE — Phase 1
+       Images appear one-by-one in scattered positions,
+       pause, then dissolve before the flowing chain.
+    ═══════════════════════════════════════════ */
+    function showMemorySequence(onComplete) {
+      const reveal = document.getElementById('reveal');
+      const stage = document.createElement('div');
+      stage.className = 'memory-stage';
+      reveal.appendChild(stage);
+
+      const allImages = [];
+      for (let i = 1; i <= 10; i++) allImages.push('images/pic' + i + '.jpg');
+
+      /* Positions: offsets from center — arc around the text area */
+      const spots = [
+        { mx: '-30vw', my: '-24vh', rot: -7 },
+        { mx: '-3vw', my: '-30vh', rot: 4 },
+        { mx: '27vw', my: '-22vh', rot: 6 },
+        { mx: '-34vw', my: '-2vh', rot: -5 },
+        { mx: '32vw', my: '-1vh', rot: 5 },
+        { mx: '-28vw', my: '18vh', rot: -4 },
+        { mx: '30vw', my: '20vh', rot: 7 },
+        { mx: '-14vw', my: '28vh', rot: -3 },
+        { mx: '15vw', my: '29vh', rot: 4 },
+        { mx: '1vw', my: '24vh', rot: -2 },
+      ];
+
+      const polaroids = allImages.map((src, i) => {
+        const pol = document.createElement('div');
+        pol.className = 'memory-polaroid';
+        pol.style.setProperty('--mx', spots[i].mx);
+        pol.style.setProperty('--my', spots[i].my);
+        pol.style.setProperty('--rot', spots[i].rot + 'deg');
+        pol.style.zIndex = i;
+
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = 'Memory';
+        img.draggable = false;
+        pol.appendChild(img);
+        stage.appendChild(pol);
+        return pol;
+      });
+
+      /* Show images one by one (350ms apart) */
+      polaroids.forEach((pol, i) => {
+        setTimeout(() => {
+          pol.classList.add('show');
+          pop();  /* soft click for each memory */
+        }, i * 350);
+      });
+
+      /* After all images shown + 1.2s pause → dissolve out */
+      const totalTime = polaroids.length * 350 + 1200;
+      setTimeout(() => {
+        stage.style.opacity = '0';
+        setTimeout(() => {
+          stage.remove();
+          if (onComplete) onComplete();
+        }, 900);
+      }, totalTime);
+    }
+
+    /* ═══════════════════════════════════════════
+       PHOTO CHAIN — dynamic builder
+    ═══════════════════════════════════════════ */
+    function createChainPolaroid(src) {
+      const pol = document.createElement('div');
+      pol.className = 'chain-polaroid';
+      const rot = (Math.random() - 0.5) * 12;            /* –6° to +6° */
+      const fd = 3.0 + Math.random() * 2.5;              /* 3s – 5.5s swing cycle */
+      const sway = 1.0 + Math.random() * 2.5;            /* 1° – 3.5° pendulum sway */
+      const delay = -(Math.random() * fd);                /* random phase offset */
+      pol.style.setProperty('--rot', rot + 'deg');
+      pol.style.setProperty('--fd', fd + 's');
+      pol.style.setProperty('--sway', sway + 'deg');
+      pol.style.animationDelay = delay + 's';
+
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = 'Memory';
+      img.draggable = false;
+      pol.appendChild(img);
+      return pol;
+    }
+
+    function buildPhotoChain() {
+      const reveal = document.getElementById('reveal');
+      const allImages = [];
+      for (let i = 1; i <= 10; i++) allImages.push('images/pic' + i + '.jpg');
+
+      /* ── Top row (scrolls left → right) ── */
+      const topRow = document.createElement('div');
+      topRow.className = 'photo-chain-row top';
+      const topTrack = document.createElement('div');
+      topTrack.className = 'photo-track scroll-left';
+
+      /* ── Bottom row (scrolls right → left) ── */
+      const botRow = document.createElement('div');
+      botRow.className = 'photo-chain-row bottom';
+      const botTrack = document.createElement('div');
+      botTrack.className = 'photo-track scroll-right';
+
+      /* Duplicate the full set for seamless CSS infinite loop */
+      for (let dup = 0; dup < 2; dup++) {
+        allImages.forEach(src => topTrack.appendChild(createChainPolaroid(src)));
+        /* Reverse order in bottom row for visual variety */
+        [...allImages].reverse().forEach(src => botTrack.appendChild(createChainPolaroid(src)));
+      }
+
+      topRow.appendChild(topTrack);
+      botRow.appendChild(botTrack);
+      reveal.appendChild(topRow);
+      reveal.appendChild(botRow);
+    }
+
+    /* ═══════════════════════════════════════════
+       CINEMATIC REVEAL SEQUENCE
+    ═══════════════════════════════════════════ */
+    function doReveal() {
+      /* 1. Button vanishes */
+      btn.classList.add('vanish');
+      setTimeout(() => btn.style.display = 'none', 650);
+
+      /* 2. Scene fades out gracefully */
+      const scene = document.getElementById('scene');
+      animate(600, easeOutExpo, (p) => { scene.style.opacity = 1 - p; }, () => { scene.style.display = 'none'; });
+      hint.style.opacity = '0';
+
+      /* 3. Stop ambient particles & melody for a clean final screen */
+      stopAmbientParticles();
+      stopMelody();
+
+      /* 4. White flash burst */
+      setTimeout(() => document.getElementById('flash').classList.add('fire'), 580);
+
+      /* 5. Reveal overlay — title fades in via its own CSS animation */
+      setTimeout(() => {
+        document.getElementById('reveal').classList.add('on');
+        document.getElementById('gring').classList.add('on');
+
+        /* ── Phase 1: Memory sequence (one-by-one polaroids) ── */
+        showMemorySequence(() => {
+          /* ── Phase 2: Flowing chain animation ── */
+          buildPhotoChain();
+
+          /* Confetti burst as chains appear */
+          setTimeout(launchConf, 400);
+
+          /* Typing starts after chains settle in */
+          setTimeout(() => {
+            type(document.getElementById('rev-typed'),
+              'Just keep smiling and living your life to the fullest… without any regrets', 60);
+          }, 800);
+        });
+      }, 760);
+    }
+
+    /* ═══════════════════════════════════════════
+       TULIP BLOOM INTERACTION
+       Called on first click. Adds .bloomed class
+       which triggers all CSS transitions + burst
+       animation, then spawns canvas sparkles.
+    ═══════════════════════════════════════════ */
+    const tulipEl = document.getElementById('tulip');
+    const sparksCvs = document.getElementById('tulip-sparks');
+    let bloomed = false;
+
+    function bloomTulip() {
+      if (bloomed) return;
+      bloomed = true;
+      tulipEl.classList.add('bloomed');
+      spawnTulipSparks();
+    }
+
+    function spawnTulipSparks() {
+      const cvs = sparksCvs;
+      const ctx = cvs.getContext('2d');
+
+      /* Size canvas to its CSS display size at device resolution */
+      const rect = cvs.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      cvs.width = rect.width * dpr;
+      cvs.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const W = rect.width;
+      const H = rect.height;
+      const cx = W * 0.50;   /* bloom center x */
+      const cy = H * 0.28;   /* bloom center y (upper area) */
+
+      const COLS = ['#ffd6e8', '#f9a8d4', '#fbbf24', '#ffffff',
+        '#f472b6', '#e879f9', '#a78bfa', '#fbcfe8'];
+
+      /* Build particles — mix of circles, diamonds, and tiny stars */
+      const particles = [];
+      const N = 28;
+      for (let i = 0; i < N; i++) {
+        const angle = (Math.PI * 2 * i / N) + (Math.random() - 0.5) * 0.5;
+        const speed = 1.0 + Math.random() * 2.6;
+        particles.push({
+          x: cx, y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1.8,   /* slight upward bias */
+          r: 1.4 + Math.random() * 2.6,
+          col: COLS[Math.floor(Math.random() * COLS.length)],
+          life: 1,
+          decay: 0.018 + Math.random() * 0.016,
+          rot: Math.random() * Math.PI * 2,
+          rs: (Math.random() - 0.5) * 0.18,
+          type: i % 3,  /* 0=circle, 1=diamond, 2=cross */
+        });
+      }
+
+      cvs.classList.add('active');
+
+      function drawDiamond(ctx, x, y, r) {
+        ctx.beginPath();
+        ctx.moveTo(x, y - r);
+        ctx.lineTo(x + r * 0.6, y);
+        ctx.lineTo(x, y + r);
+        ctx.lineTo(x - r * 0.6, y);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function drawCross(ctx, x, y, r) {
+        ctx.beginPath();
+        const arm = r * 1.2, thin = r * 0.32;
+        ctx.rect(x - thin, y - arm, thin * 2, arm * 2);
+        ctx.rect(x - arm, y - thin, arm * 2, thin * 2);
+        ctx.fill();
+      }
+
+      let rafId;
+      (function loop() {
+        ctx.clearRect(0, 0, W, H);
+        let alive = false;
+
+        for (const p of particles) {
+          p.life -= p.decay;
+          p.vy += 0.07;          /* gravity */
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.rs;
+          p.vx *= 0.98;          /* air resistance */
+
+          if (p.life <= 0) continue;
+          alive = true;
+
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.life);
+          ctx.fillStyle = p.col;
+          ctx.shadowColor = p.col;
+          ctx.shadowBlur = 8;
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+
+          if (p.type === 0) { ctx.beginPath(); ctx.arc(0, 0, p.r, 0, Math.PI * 2); ctx.fill(); }
+          else if (p.type === 1) drawDiamond(ctx, 0, 0, p.r * 1.1);
+          else drawCross(ctx, 0, 0, p.r * 0.9);
+
+          ctx.restore();
+        }
+
+        if (alive) {
+          rafId = requestAnimationFrame(loop);
+        } else {
+          cvs.classList.remove('active');
+          cancelAnimationFrame(rafId);
+        }
+      })();
+    }
+
+    /* ── Intro cinematic sequence ── */
+    (function runIntroSequence() {
+      const introText = document.getElementById('intro-typed');
+      const introCursor = document.getElementById('intro-cursor');
+      const introBtn = document.getElementById('intro-btn');
+
+      const lines = [
+        { text: 'umm....', pause: 500 },
+        { text: 'tho suru kre??', pause: 0 }
+      ];
+
+      let lineIdx = 0, charIdx = 0, currentText = '';
+
+      function typeIntro() {
+        if (lineIdx >= lines.length) {
+          /* Typing done — hide cursor, show button */
+          setTimeout(() => {
+            introCursor.style.display = 'none';
+            introBtn.classList.add('show');
+          }, 600);
+          return;
+        }
+        const line = lines[lineIdx];
+        if (charIdx < line.text.length) {
+          currentText += line.text[charIdx];
+          introText.textContent = currentText;
+          charIdx++;
+          setTimeout(typeIntro, 70 + Math.random() * 40);
+        } else {
+          lineIdx++;
+          charIdx = 0;
+          if (lineIdx < lines.length) currentText += '\n';
+          setTimeout(typeIntro, line.pause);
+        }
+      }
+
+      /* Start typing after card fades in */
+      setTimeout(typeIntro, 800);
+
+      /* Subtle chime on button click */
+      function playChime() {
+        try {
+          const ac = new (window.AudioContext || window.webkitAudioContext)();
+          const t = ac.currentTime;
+          [523.25, 659.25, 783.99].forEach((f, i) => {
+            const o = ac.createOscillator(), g = ac.createGain();
+            o.connect(g); g.connect(ac.destination);
+            o.type = 'sine'; o.frequency.value = f;
+            g.gain.setValueAtTime(0, t + i * 0.15);
+            g.gain.linearRampToValueAtTime(0.06, t + i * 0.15 + 0.05);
+            g.gain.linearRampToValueAtTime(0, t + i * 0.15 + 0.6);
+            o.start(t + i * 0.15); o.stop(t + i * 0.15 + 0.7);
+          });
+        } catch (e) { /* silent fail */ }
+      }
+
+      /* Button click → transition to main site */
+      introBtn.addEventListener('click', () => {
+        playChime();
+        const intro = document.getElementById('intro-screen');
+        intro.classList.add('exit');
+        setTimeout(runLoadCinematic, 400);
+        setTimeout(() => { intro.style.display = 'none'; }, 1100);
+      });
+    })();
+
+    /* ── Ensure initial images load ── */
+    window.addEventListener('load', () => {
+      const imgL = document.getElementById('img-l');
+      const imgR = document.getElementById('img-r');
+      if (imgL && !imgL.naturalWidth) imgL.src = 'images/pic1.jpg';
+      if (imgR && !imgR.naturalWidth) imgR.src = 'images/pic6.jpg';
+    });
+  </script>
+</body>
+
+</html>
